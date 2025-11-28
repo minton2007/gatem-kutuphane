@@ -11,14 +11,36 @@
 
     <div id="status-box">
         <p>Durum:</p>
-        <span id="status-text">KAPALI</span> </div>
+        <span id="status-text">Yükleniyor...</span> 
+    </div>
 
     <button id="change-button">Durumu Değiştir</button> 
 
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwW3usqGwyt00RQUuFy2baaxVJyKR-wYC",
+            authDomain: "gatem-kutuphane-3a7b2.firebaseapp.com",
+            projectId: "gatem-kutuphane-3a7b2",
+            storageBucket: "gatem-kutuphane-3a7b2.appspot.com", 
+            messagingSenderId: "257621240836",
+            appId: "1:257621240836:web:52d55293d287c60606aeaf",
+            databaseURL: "https://gatem-kutuphane-3a7b2-default-rtdb.firebaseio.com" 
+        };
+        // Firebase'i başlat
+        firebase.initializeApp(firebaseConfig);
+        // Realtime Database referansını al
+        const database = firebase.database();
+        // Kütüphane durumunun saklandığı ana referans
+        const statusRef = database.ref('library/status'); 
+    </script>
+    
     <script src="script.js"></script>
 
     <footer>
         <p>Alperen Yusuf Parlak tarafından yapılmıştır</p>
     </footer>
-    </body>
+</body>
 </html>
