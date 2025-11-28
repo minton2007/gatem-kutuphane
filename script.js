@@ -1,56 +1,62 @@
-// Güvenliğiniz için bu şifreyi basit tutmayın ve gerçek projede daha güvenli bir yöntem kullanın!
+// Şifre: okulkutuphane
 const SECRET_PASSWORD = "okulkutuphane"; 
-const STATUS_KEY = "libraryStatus"; // Durumu kaydetmek için kullanılacak anahtar
 
-// 1. Durumu Tarayıcıda Kaydetme ve Yükleme İşlevleri
-function saveStatus(status) {
-    // Durumu kullanıcının tarayıcısına kaydeder (Bu, her kullanıcı için ayrı çalışır!)
-    localStorage.setItem(STATUS_KEY, status); 
-    displayStatus(); // Kaydettikten sonra hemen gösterimi güncelle
-}
-
-function loadStatus() {
-    // Kayıtlı durumu yükler, eğer yoksa varsayılan olarak 'Kapalı' (closed) döner
-    return localStorage.getItem(STATUS_KEY) || 'closed'; 
-}
-
-// 2. Durumu Ekranda Gösterme İşlevi
-function displayStatus() {
-    const currentStatus = loadStatus();
+// 1. Durumu Ekranda Gösterme İşlevi
+function displayStatus(currentStatus) {
     const statusTextElement = document.getElementById('status-text');
     const statusBoxElement = document.getElementById('status-box');
 
-    statusTextElement.textContent = currentStatus === 'open' ? 'AÇIK' : 'KAPALI';
+    // Firebase'den gelen veri yoksa varsayılan 'closed'
+    const status = currentStatus || 'closed'; 
+
+    statusTextElement.textContent = status === 'open' ? 'AÇIK' : 'KAPALI';
     
     // Arka plan rengini duruma göre ayarla
-    if (currentStatus === 'open') {
+    if (status === 'open') {
         statusBoxElement.className = 'status-box open';
     } else {
         statusBoxElement.className = 'status-box closed';
     }
 }
 
-// 3. Şifreli Değiştirme Sistemi İşlevi
+// 2. Şifreli Değiştirme Sistemi ve Firebase'e Kaydetme
 function changeStatus() {
-    // Kullanıcıdan şifreyi iste
     const enteredPassword = prompt("Durumu değiştirmek için şifreyi girin:");
     
     // Şifre kontrolü
     if (enteredPassword === SECRET_PASSWORD) {
-        // Doğru şifre girildi, mevcut durumu tersine çevir
-        const currentStatus = loadStatus();
-        const newStatus = currentStatus === 'open' ? 'closed' : 'open';
-        saveStatus(newStatus);
-        alert(`Kütüphane durumu başarıyla "${newStatus === 'open' ? 'AÇIK' : 'KAPALI'}" olarak ayarlandı.`);
+        // Doğru şifre girildi, mevcut durumu Realtime Database'den bir kere oku
+        statusRef.once('value')
+            .then((snapshot) => {
+                const currentStatus = snapshot.val() || 'closed';
+                const newStatus = currentStatus === 'open' ? 'closed' : 'open';
+                
+                // Yeni durumu Firebase'e yaz
+                return statusRef.set(newStatus)
+                       .then(() => newStatus); // Yeni durumu döndür
+            })
+            .then((newStatus) => {
+                alert(`Kütüphane durumu başarıyla ayarlandı. Yeni durum: ${newStatus === 'open' ? 'AÇIK' : 'KAPALI'}`);
+                // displayStatus, Firebase dinleyicisi sayesinde otomatik çalışacaktır.
+            })
+            .catch((error) => {
+                console.error("Durum değiştirme hatası: ", error);
+                alert("Durum değiştirilirken bir hata oluştu.");
+            });
     } else if (enteredPassword !== null) {
-        // Kullanıcı iptal etmediyse ve yanlış şifre girdiyse
+        // Yanlış şifre
         alert("Yanlış şifre! Durum değiştirilemedi.");
     }
 }
 
-// Sayfa yüklendiğinde durumu göster
+// Sayfa yüklendiğinde durumu Firebase'den dinlemeye başla (Real-time güncelleme)
 document.addEventListener('DOMContentLoaded', () => {
-    displayStatus();
+    
+    // Firebase'deki veri her değiştiğinde (herkes değiştirdiğinde) bu fonksiyon çalışır!
+    statusRef.on('value', (snapshot) => {
+        const currentStatus = snapshot.val();
+        displayStatus(currentStatus);
+    });
     
     // Değiştir butonuna tıklama olayını bağla
     document.getElementById('change-button').addEventListener('click', changeStatus);
