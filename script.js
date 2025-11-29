@@ -1,5 +1,5 @@
 // Şifre: okulkutuphane
-const SECRET_PASSWORD = "gatemkütüphane1962"; 
+const SECRET_PASSWORD = "gatem1962"; 
 
 // 1. Durumu Ekranda Gösterme İşlevi
 function displayStatus(currentStatus) {
@@ -61,4 +61,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Değiştir butonuna tıklama olayını bağla
     document.getElementById('change-button').addEventListener('click', changeStatus);
 });
+
 
